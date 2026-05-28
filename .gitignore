@@ -1,0 +1,24 @@
+# Секреты
+.env
+.env.prod
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Node.js
+node_modules/
+dist/
+
+# Docker
+postgres_data/
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
