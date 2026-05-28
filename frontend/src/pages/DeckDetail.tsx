@@ -11,12 +11,15 @@ export default function DeckDetail() {
   const [back, setBack] = useState('')
   const [adding, setAdding] = useState(false)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleValue, setTitleValue] = useState('')
 
   useEffect(() => { fetchDeck() }, [id])
 
   const fetchDeck = async () => {
     const { data } = await api.get(`/decks/${id}`)
     setDeck(data)
+    setTitleValue(data.title)
     if (data.share_token) {
       setShareUrl(`${window.location.origin}/share/${data.share_token}`)
     }
@@ -50,9 +53,17 @@ export default function DeckDetail() {
 
   const shareDeck = async () => {
     const { data } = await api.post(`/decks/${id}/share`)
-    const url = `${window.location.origin}/share/${data.share_token}`
-    setShareUrl(url)
-    navigator.clipboard.writeText(url)
+    setShareUrl(`${window.location.origin}/share/${data.share_token}`)
+  }
+
+  const saveTitle = async () => {
+    if (!titleValue.trim() || titleValue === deck?.title) {
+      setEditingTitle(false)
+      return
+    }
+    await api.put(`/decks/${id}`, { title: titleValue.trim() })
+    setEditingTitle(false)
+    fetchDeck()
   }
 
   if (!deck) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400">Загрузка...</div>
@@ -61,7 +72,26 @@ export default function DeckDetail() {
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4">
         <Link to="/" className="text-blue-600 text-sm hover:underline">← Назад</Link>
-        <h1 className="text-lg font-bold text-slate-800 flex-1">{deck.title}</h1>
+
+        {editingTitle ? (
+          <input
+            autoFocus
+            value={titleValue}
+            onChange={e => setTitleValue(e.target.value)}
+            onBlur={saveTitle}
+            onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') setEditingTitle(false) }}
+            className="flex-1 text-lg font-bold text-slate-800 border-b-2 border-blue-500 outline-none bg-transparent"
+          />
+        ) : (
+          <h1
+            onClick={() => setEditingTitle(true)}
+            className="text-lg font-bold text-slate-800 flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+            title="Нажмите чтобы переименовать"
+          >
+            {deck.title} ✎
+          </h1>
+        )}
+
         <Link
           to={`/study/${id}`}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -78,12 +108,25 @@ export default function DeckDetail() {
           onClick={shareDeck}
           className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
         >
-          {shareUrl ? '✓ Ссылка скопирована' : 'Поделиться'}
+          Поделиться
         </button>
         <button onClick={deleteDeck} className="text-sm text-red-400 hover:text-red-600">
           Удалить колоду
         </button>
       </header>
+
+      {shareUrl && (
+        <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center gap-3">
+          <span className="text-sm text-blue-700 font-medium">Ссылка для шаринга:</span>
+          <input
+            readOnly
+            value={shareUrl}
+            onClick={e => (e.target as HTMLInputElement).select()}
+            className="flex-1 text-sm px-3 py-1.5 border border-blue-300 rounded-lg text-blue-800 bg-white cursor-pointer font-mono"
+          />
+          <span className="text-xs text-blue-500">нажми на поле чтобы выделить</span>
+        </div>
+      )}
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         <form onSubmit={addCard} className="bg-white rounded-xl border border-slate-200 p-4 mb-6">

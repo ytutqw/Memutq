@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
+import { useAuthStore } from '../store/authStore'
 
 export default function Register() {
   const [form, setForm] = useState({ email: '', username: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { setAuth } = useAuthStore()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -17,7 +19,15 @@ export default function Register() {
     setLoading(true)
     try {
       await api.post('/auth/register', form)
-      navigate('/login')
+      const { data } = await api.post('/auth/login', {
+        email: form.email,
+        password: form.password,
+      })
+      const me = await api.get('/auth/me', {
+        headers: { Authorization: `Bearer ${data.access_token}` },
+      })
+      setAuth(data.access_token, me.data)
+      navigate('/')
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Ошибка регистрации')
     } finally {
