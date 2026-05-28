@@ -10,12 +10,16 @@ export default function DeckDetail() {
   const [front, setFront] = useState('')
   const [back, setBack] = useState('')
   const [adding, setAdding] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
 
   useEffect(() => { fetchDeck() }, [id])
 
   const fetchDeck = async () => {
     const { data } = await api.get(`/decks/${id}`)
     setDeck(data)
+    if (data.share_token) {
+      setShareUrl(`${window.location.origin}/share/${data.share_token}`)
+    }
   }
 
   const addCard = async (e: React.FormEvent) => {
@@ -44,6 +48,13 @@ export default function DeckDetail() {
     navigate('/')
   }
 
+  const shareDeck = async () => {
+    const { data } = await api.post(`/decks/${id}/share`)
+    const url = `${window.location.origin}/share/${data.share_token}`
+    setShareUrl(url)
+    navigator.clipboard.writeText(url)
+  }
+
   if (!deck) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400">Загрузка...</div>
 
   return (
@@ -63,6 +74,12 @@ export default function DeckDetail() {
         >
           Повторить всё
         </Link>
+        <button
+          onClick={shareDeck}
+          className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
+        >
+          {shareUrl ? '✓ Ссылка скопирована' : 'Поделиться'}
+        </button>
         <button onClick={deleteDeck} className="text-sm text-red-400 hover:text-red-600">
           Удалить колоду
         </button>

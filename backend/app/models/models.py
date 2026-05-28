@@ -35,6 +35,8 @@ class Deck(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    share_token: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True)
 
     owner: Mapped["User"] = relationship("User", back_populates="decks")
     cards: Mapped[list["Card"]] = relationship(

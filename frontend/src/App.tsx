@@ -5,6 +5,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import DeckDetail from './pages/DeckDetail'
 import Study from './pages/Study'
+import SharedDeck from './pages/SharedDeck'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore()
@@ -19,6 +20,7 @@ export default function App() {
       <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/decks/:id" element={<PrivateRoute><DeckDetail /></PrivateRoute>} />
       <Route path="/study/:id" element={<PrivateRoute><Study /></PrivateRoute>} />
+      <Route path="/share/:token" element={<SharedDeck />} />
     </Routes>
   )
 }

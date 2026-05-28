@@ -9,6 +9,8 @@ export interface Deck {
   id: number
   title: string
   description: string | null
+  is_public: boolean
+  share_token: string | null
   created_at: string
 }
 

@@ -34,17 +34,21 @@ class UserResponse(BaseModel):
 class DeckCreate(BaseModel):
     title: str
     description: str | None = None
+    is_public: bool = False
 
 
 class DeckUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
+    is_public: bool | None = None
 
 
 class DeckResponse(BaseModel):
     id: int
     title: str
     description: str | None
+    is_public: bool
+    share_token: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
