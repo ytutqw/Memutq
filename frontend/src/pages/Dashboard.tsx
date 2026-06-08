@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [creating, setCreating] = useState(false)
+  const [titleError, setTitleError] = useState('')
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
 
@@ -29,7 +30,11 @@ export default function Dashboard() {
 
   const createDeck = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newTitle.trim()) return
+    if (!newTitle.trim()) {
+      setTitleError('Введите название колоды')
+      return
+    }
+    setTitleError('')
     setCreating(true)
     try {
       await api.post('/decks', { title: newTitle.trim() })
@@ -47,7 +52,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
         <span className="text-xl font-bold text-slate-800">Memutq</span>
         <div className="flex items-center gap-4">
@@ -59,7 +63,6 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8">
-        {/* Статистика */}
         {stats && (
           <div className="grid grid-cols-3 gap-4 mb-8">
             {[
@@ -75,22 +78,31 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Создать колоду */}
-        <form onSubmit={createDeck} className="flex gap-2 mb-6">
-          <input
-            value={newTitle} onChange={e => setNewTitle(e.target.value)}
-            placeholder="Название новой колоды..."
-            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            type="submit" disabled={creating}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            + Создать
-          </button>
+        <form onSubmit={createDeck} className="flex flex-col gap-1 mb-6">
+          <div className="flex gap-2">
+            <input
+              value={newTitle}
+              onChange={e => {
+                setNewTitle(e.target.value)
+                if (titleError) setTitleError('')
+              }}
+              placeholder="Название новой колоды..."
+              className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                titleError ? 'border-red-400' : 'border-slate-300'
+              }`}
+            />
+            <button
+              type="submit" disabled={creating}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              + Создать
+            </button>
+          </div>
+          {titleError && (
+            <p className="text-red-500 text-xs ml-1">{titleError}</p>
+          )}
         </form>
 
-        {/* Список колод */}
         {decks.length === 0 ? (
           <div className="text-center py-16 text-slate-400">
             <p className="text-lg">Нет колод</p>
