@@ -29,35 +29,42 @@ export default function SharedDeck() {
   }
 
   if (!deck) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-400">
+    <div className="min-h-screen flex items-center justify-center"
+      style={{ background: '#1f1f1e', color: '#6b6860' }}>
       Загрузка...
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center gap-4">
-        <Link to="/" className="text-blue-600 text-sm hover:underline">← На главную</Link>
-        <h1 className="text-lg font-bold text-slate-800 flex-1">{deck.title}</h1>
+    <div className="min-h-screen" style={{ background: '#1f1f1e', color: '#e8e6e1' }}>
+      <header style={{ background: '#2a2a28', borderBottom: '1px solid #3a3a38' }}
+        className="px-4 sm:px-6 py-4 flex items-center gap-4">
+        <Link to="/" className="text-sm" style={{ color: '#f5a623' }}>← На главную</Link>
+        <h1 className="text-base sm:text-lg font-bold flex-1 truncate" style={{ color: '#e8e6e1' }}>
+          {deck.title}
+        </h1>
         <button
           onClick={copyDeck}
           disabled={copying || copied}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors flex-shrink-0"
+          style={{ background: '#f5a623', color: '#1f1f1e' }}
         >
           {copied ? '✓ Скопировано!' : copying ? 'Копируем...' : 'Скопировать себе'}
         </button>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-6">
         {deck.description && (
-          <p className="text-slate-500 text-sm mb-6">{deck.description}</p>
+          <p className="text-sm mb-6" style={{ color: '#9e9b94' }}>{deck.description}</p>
         )}
-        <p className="text-sm text-slate-500 mb-3">{deck.cards.length} карточек</p>
+        <p className="text-sm mb-3" style={{ color: '#6b6860' }}>{deck.cards.length} карточек</p>
         <div className="space-y-2">
           {deck.cards.map(card => (
-            <div key={card.id} className="bg-white rounded-xl border border-slate-200 p-4">
-              <p className="text-sm font-medium text-slate-800">{card.front}</p>
-              <p className="text-sm text-slate-500 mt-1">{card.back}</p>
+            <div key={card.id}
+              className="rounded-xl p-4"
+              style={{ background: '#2a2a28', border: '1px solid #3a3a38' }}>
+              <p className="text-sm font-medium" style={{ color: '#e8e6e1' }}>{card.front}</p>
+              <p className="text-sm mt-1" style={{ color: '#9e9b94' }}>{card.back}</p>
             </div>
           ))}
         </div>

@@ -148,3 +148,42 @@ async def get_stats(
     total = total_result.scalar() or 0
 
     return StatsResponse(reviewed_today=reviewed_today, pending=pending, total=total)
+
+@router.get("/decks-stats", response_model=list[dict])
+async def get_decks_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Количество карточек к повторению по каждой колоде."""
+    today = date.today()
+
+    result = await db.execute(
+        select(Deck).where(Deck.user_id == current_user.id)
+    )
+    decks = result.scalars().all()
+
+    stats = []
+    for deck in decks:
+        # карточки с прогрессом у которых next_review <= сегодня
+        progress_result = await db.execute(
+            select(func.count(CardProgress.id)).where(
+                CardProgress.user_id == current_user.id,
+                CardProgress.card_id.in_(
+                    select(Card.id).where(Card.deck_id == deck.id)
+                ),
+                CardProgress.next_review <= today,
+            )
+        )
+        due = progress_result.scalar() or 0
+
+        # новые карточки без прогресса
+        new_result = await db.execute(
+            select(func.count(Card.id))
+            .outerjoin(CardProgress, (CardProgress.card_id == Card.id) & (CardProgress.user_id == current_user.id))
+            .where(Card.deck_id == deck.id, CardProgress.id == None)
+        )
+        new_cards = new_result.scalar() or 0
+
+        stats.append({"deck_id": deck.id, "due": due + new_cards})
+
+    return stats
