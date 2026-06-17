@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import auth, decks, cards, study
+from app.routers import auth, decks, cards, study, files
 
 app = FastAPI(
     title="Memutq API",
@@ -24,6 +24,7 @@ app.include_router(auth.router)
 app.include_router(decks.router)
 app.include_router(cards.router)
 app.include_router(study.router)
+app.include_router(files.router)
 
 
 @app.get("/", tags=["health"])

@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../api/client'
 import { Card } from '../types'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 const QUALITY_LABELS: Record<number, { label: string; bg: string; color: string }> = {
   0: { label: 'Не знаю',  bg: '#3a1a1a', color: '#e05252' },
   1: { label: 'Почти',    bg: '#3a2a1a', color: '#e08a52' },
@@ -73,9 +75,18 @@ export default function Study() {
     </div>
   )
 
+  const showImage = (filename: string | null | undefined) =>
+    filename ? (
+      <img
+        src={`${API_URL}/files/${filename}`}
+        alt=""
+        className="max-h-48 sm:max-h-64 object-contain rounded-xl mt-4"
+        style={{ border: '1px solid #3a3a38' }}
+      />
+    ) : null
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#1f1f1e' }}>
-      {/* Header */}
       <header style={{ background: '#2a2a28', borderBottom: '1px solid #3a3a38' }}
         className="px-4 sm:px-6 py-4 flex items-center gap-4">
         <Link to={`/decks/${id}`} className="text-sm" style={{ color: '#f5a623' }}>← Назад</Link>
@@ -84,7 +95,6 @@ export default function Study() {
         </span>
       </header>
 
-      {/* Прогресс-бар */}
       <div className="h-1" style={{ background: '#2a2a28' }}>
         <div
           className="h-1 transition-all"
@@ -93,32 +103,43 @@ export default function Study() {
       </div>
 
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-6 sm:py-8 gap-6">
-        {/* Карточка */}
         <div
           onClick={() => setFlipped(f => !f)}
           className="w-full max-w-lg rounded-2xl p-6 sm:p-10 flex items-center justify-center cursor-pointer select-none transition-all"
           style={{
             background: '#2a2a28',
             border: '1px solid #3a3a38',
-            minHeight: '200px',
+            minHeight: '220px',
           }}
           onMouseEnter={e => (e.currentTarget.style.borderColor = '#f5a623')}
           onMouseLeave={e => (e.currentTarget.style.borderColor = '#3a3a38')}
         >
-          <div className="text-center">
+          <div className="text-center w-full">
             <p className="text-xs uppercase tracking-widest mb-4" style={{ color: '#6b6860' }}>
               {flipped ? 'Ответ' : 'Вопрос'}
             </p>
-            <p className="text-lg sm:text-xl leading-relaxed" style={{ color: '#e8e6e1' }}>
-              {flipped ? currentCard.back : currentCard.front}
-            </p>
-            {!flipped && (
-              <p className="text-xs mt-6" style={{ color: '#4a4a46' }}>нажмите чтобы открыть</p>
+
+            {!flipped ? (
+              <>
+                <p className="text-lg sm:text-xl leading-relaxed" style={{ color: '#e8e6e1' }}>
+                  {currentCard.front}
+                </p>
+                {showImage(currentCard.front_image)}
+                {!currentCard.front_image && (
+                  <p className="text-xs mt-6" style={{ color: '#4a4a46' }}>нажмите чтобы открыть</p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-lg sm:text-xl leading-relaxed" style={{ color: '#e8e6e1' }}>
+                  {currentCard.back}
+                </p>
+                {showImage(currentCard.back_image)}
+              </>
             )}
           </div>
         </div>
 
-        {/* Кнопки оценки */}
         {flipped ? (
           <div className="w-full max-w-lg">
             <p className="text-xs text-center mb-3" style={{ color: '#6b6860' }}>Как хорошо вы знали ответ?</p>

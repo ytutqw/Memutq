@@ -71,6 +71,8 @@ class CardResponse(BaseModel):
     deck_id: int
     front: str
     back: str
+    front_image: str | None
+    back_image: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

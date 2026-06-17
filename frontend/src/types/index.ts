@@ -19,6 +19,8 @@ export interface Card {
   deck_id: number
   front: string
   back: string
+  front_image: string | null
+  back_image: string | null
   created_at: string
 }
 

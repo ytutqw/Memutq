@@ -53,6 +53,8 @@ class Card(Base):
     )
     front: Mapped[str] = mapped_column(Text, nullable=False)
     back: Mapped[str] = mapped_column(Text, nullable=False)
+    front_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    back_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     deck: Mapped["Deck"] = relationship("Deck", back_populates="cards")
