@@ -1,4 +1,6 @@
 import secrets
+import shutil
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,6 +11,7 @@ from app.dependencies import get_current_user
 from app.models.models import User, Deck
 from app.schemas.schemas import DeckCreate, DeckUpdate, DeckResponse, DeckWithCards
 
+UPLOAD_DIR = Path("/app/uploads")
 router = APIRouter(prefix="/decks", tags=["decks"])
 
 
@@ -48,7 +51,6 @@ async def get_shared_deck(token: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Deck not found or not public")
     return deck
 
-
 @router.post("/shared/{token}/copy", response_model=DeckResponse, status_code=201)
 async def copy_shared_deck(
     token: str,
@@ -62,7 +64,7 @@ async def copy_shared_deck(
     )
     source = result.scalar_one_or_none()
     if not source:
-        raise HTTPException(status_code=404, detail="Deck not found or not public")
+        raise HTTPException(status_code=404, detail="Колода не найдена или не является публичной")
 
     new_deck = Deck(
         user_id=current_user.id,
@@ -74,7 +76,35 @@ async def copy_shared_deck(
 
     from app.models.models import Card
     for card in source.cards:
-        db.add(Card(deck_id=new_deck.id, front=card.front, back=card.back))
+        # Копируем файлы изображений если есть
+        new_front_image = None
+        new_back_image = None
+
+        if card.front_image:
+            src = UPLOAD_DIR / card.front_image
+            if src.exists():
+                import uuid
+                ext = Path(card.front_image).suffix
+                new_filename = f"{uuid.uuid4().hex}{ext}"
+                shutil.copy2(src, UPLOAD_DIR / new_filename)
+                new_front_image = new_filename
+
+        if card.back_image:
+            src = UPLOAD_DIR / card.back_image
+            if src.exists():
+                import uuid
+                ext = Path(card.back_image).suffix
+                new_filename = f"{uuid.uuid4().hex}{ext}"
+                shutil.copy2(src, UPLOAD_DIR / new_filename)
+                new_back_image = new_filename
+
+        db.add(Card(
+            deck_id=new_deck.id,
+            front=card.front,
+            back=card.back,
+            front_image=new_front_image,
+            back_image=new_back_image,
+        ))
 
     await db.commit()
     await db.refresh(new_deck)

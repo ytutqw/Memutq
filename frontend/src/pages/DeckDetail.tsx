@@ -33,7 +33,6 @@ function LocalPreview({ file }: { file: File }) {
   )
 }
 
-// ── Зона вставки/загрузки для формы создания карточки ────────────────────────
 function PasteZone({
   label,
   file,
@@ -44,25 +43,40 @@ function PasteZone({
   onChange: (f: File | null) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [active, setActive] = useState(false)
 
-  const handlePaste = (e: React.ClipboardEvent) => {
-    const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith('image/'))
-    if (item) onChange(item.getAsFile())
-  }
+  useEffect(() => {
+    if (!active) return
+    const handler = (e: ClipboardEvent) => {
+      const item = Array.from(e.clipboardData?.items ?? []).find(i => i.type.startsWith('image/'))
+      if (item) { onChange(item.getAsFile()); setActive(false) }
+    }
+    document.addEventListener('paste', handler)
+    return () => document.removeEventListener('paste', handler)
+  }, [active])
 
   return (
     <div
-      onPaste={handlePaste}
-      onClick={() => inputRef.current?.click()}
-      className="w-full rounded-lg text-xs cursor-pointer flex items-center justify-between px-3 py-2 transition-colors"
-      style={{ background: '#1f1f1e', border: '1px dashed #3a3a38', color: '#6b6860' }}
+      onClick={() => { setActive(true); inputRef.current?.click() }}
+      className="w-full rounded-lg text-xs cursor-pointer flex items-center justify-between px-3 py-2 transition-all"
+      style={{
+        background: '#1f1f1e',
+        border: active ? '1px dashed #f5a623' : '1px dashed #3a3a38',
+        color: active ? '#f5a623' : '#6b6860',
+      }}
     >
       <input ref={inputRef} type="file" accept="image/*" className="hidden"
-        onChange={e => onChange(e.target.files?.[0] ?? null)} />
-      <span>{file ? `📎 ${file.name}` : `🖼 ${label} — вставьте Ctrl+V или нажмите`}</span>
+        onChange={e => { onChange(e.target.files?.[0] ?? null); setActive(false) }} />
+      <span>
+        {file
+          ? `📎 ${file.name}`
+          : active
+            ? `⌨️ нажмите Ctrl+V для вставки...`
+            : `🖼 ${label} — Ctrl+V или нажмите для выбора файла`}
+      </span>
       {file && (
         <button onClick={e => { e.stopPropagation(); onChange(null) }}
-          className="ml-2 text-xs" style={{ color: '#e05252' }}>✕</button>
+          className="ml-2" style={{ color: '#e05252' }}>✕</button>
       )}
     </div>
   )
